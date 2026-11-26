@@ -1,8 +1,8 @@
 #!/bin/sh
 set -e
 
-# Private key-i mühit dəyişənindən fayla yazırıq
-printf '%s\n' "$OCI_PRIVATE_KEY" > /tmp/key.pem
+# Base64 formatındakı private key-i dekod edib /tmp/key.pem faylına yazırıq
+echo "$OCI_PRIVATE_KEY_B64" | base64 -d > /tmp/key.pem
 chmod 600 /tmp/key.pem
 export OCI_PRIVATE_KEY_FILENAME=/tmp/key.pem
 
