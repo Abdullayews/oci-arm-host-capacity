@@ -1,0 +1,45 @@
+services:
+  - type: web
+    name: oci-arm-host-capacity
+    runtime: docker
+    plan: free
+    region: frankfurt
+    autoDeploy: true
+    healthCheckPath: /health
+    envVars:
+      - key: OCI_REGION
+        sync: false
+      - key: OCI_USER_ID
+        sync: false
+      - key: OCI_TENANCY_ID
+        sync: false
+      - key: OCI_KEY_FINGERPRINT
+        sync: false
+      - key: OCI_PRIVATE_KEY_B64
+        sync: false
+      - key: OCI_AVAILABILITY_DOMAIN
+        sync: false
+      - key: OCI_SUBNET_ID
+        sync: false
+      - key: OCI_IMAGE_ID
+        sync: false
+      - key: OCI_OCPUS
+        sync: false
+      - key: OCI_MEMORY_IN_GBS
+        sync: false
+      - key: OCI_SHAPE
+        sync: false
+      - key: OCI_MAX_INSTANCES
+        sync: false
+      - key: OCI_SSH_PUBLIC_KEY
+        sync: false
+      - key: OCI_BOOT_VOLUME_SIZE_IN_GBS
+        sync: false
+      - key: CACHE_AVAILABILITY_DOMAINS
+        sync: false
+      - key: TOO_MANY_REQUESTS_TIME_WAIT
+        sync: false
+      - key: TELEGRAM_BOT_API_KEY
+        sync: false
+      - key: TELEGRAM_USER_ID
+        sync: false

@@ -29,6 +29,7 @@ is a bit outdated regarding [Configuration](#configuration) but still can be use
       - [OCI_SSH_PUBLIC_KEY (SSH access)](#oci_ssh_public_key-ssh-access)
     - [Optional](#optional)
 - [Running the script](#running-the-script)
+- [Deployment on Render (24/7 keep-alive)](#deployment-on-render-247-keep-alive)
 - [Periodic job setup (cron)](#periodic-job-setup-cron)
   - [Linux / WSL](#linux--wsl)
   - [GitHub actions (workflows)](#github-actions-workflows)
@@ -188,6 +189,42 @@ or if you already have instances:
     "message": "The following service limits were exceeded: standard-a1-memory-count, standard-a1-core-count. Request a service limit increase from the service limits page in the console. "
 }
 ```
+
+## Deployment on Render (24/7 keep-alive)
+
+This repository ships a Docker image that runs the capacity check every 60 seconds
+and **stays awake 24/7 on Render's free tier** (a Free web service normally spins
+down after 15 minutes without inbound traffic).
+
+How it stays awake:
+
+1. A `php -S` web server with a `/health` endpoint is started on `$PORT` (Render
+   sets it and routes its edge to that port; `render.yaml` registers
+   `healthCheckPath: /health`).
+2. The entrypoint loop pings its own public URL (`RENDER_EXTERNAL_URL/health`)
+   every ~55 seconds. That request arrives through Render's edge, so it counts
+   as **inbound** traffic and keeps resetting the 15-minute spin-down timer.
+3. Between heartbeats the loop runs `php index.php` (one OCI capacity check per
+   minute). Failures are non-fatal: the loop logs and retries on the next tick.
+
+### Setup
+
+1. Create a new **Web Service** on [render.com](https://render.com) from this
+   repository (Blueprint detects `render.yaml`, or pick "Existing image / Docker").
+2. In the environment settings, set the same OCI variables as in
+   [.env.example](.env.example) — with one difference: instead of
+   `OCI_PRIVATE_KEY_FILENAME`, provide `OCI_PRIVATE_KEY_B64`, the **base64 of your
+   private key**, e.g.
+   `base64 -w0 oracleidentitycloudservice_*.pem` (Linux) or
+   `base64 -i oracleidentitycloudservice_*.pem` (macOS).
+3. Deploy. Watch the logs for `heartbeat ok` lines — that means the service is
+   being kept alive and the OCI check is running every minute.
+
+The status of the loop is visible at `/` (HTML page) and `/health` (JSON).
+
+> Free-tier note: Render may still restart services for platform maintenance.
+> The loop is stateless and simply resumes after any restart, and
+> `autoDeploy: true` redeploys on every push to `main`.
 
 ## Periodic job setup (cron)
 
